@@ -18,9 +18,6 @@ app.get('/sprechi/:chiave', (req, res) => {
   const chiave = req.params.chiave;
 
   let hash = crypto.createHash('sha256').update(chiave).digest('hex');
-  console.log(hash);
-
-  console.log(key);
 
   if(hash != key){
     res.status(401).json({errore: "chiave non valida"});
