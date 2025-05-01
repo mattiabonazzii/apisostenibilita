@@ -1,7 +1,8 @@
 const express = require('express');
 const crypto = require('crypto');
 const app = express();
-const port = 3000;
+require('dotenv').config();
+const port = 4000;
 
 //quantità sprecate al secondo
 const sprecoCiboPerSecondo = 41.2; // tonnellate
@@ -15,9 +16,13 @@ app.get('/sprechi/:chiave', (req, res) => {
   const adesso = Date.now();
   const secondiPassati = Math.floor((adesso - avvio) / 1000);
   const chiave = req.params.chiave;
-  let hash = crypto.createHash('sha256', chiave);
-  hash = hash.digest('hex');
-  if(chiave !== key){
+
+  let hash = crypto.createHash('sha256').update(chiave).digest('hex');
+  console.log(hash);
+
+  console.log(key);
+
+  if(hash != key){
     res.status(401).json({errore: "chiave non valida"});
     return;
   }
