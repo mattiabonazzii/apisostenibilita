@@ -17,11 +17,7 @@ const key = process.env.KEY;
 app.get('/sprechi-inizio', (req, res) => {
   const adesso = Date.now();
   const secondiPassati = Math.floor((adesso - avvio) / 1000);
-  const chiave = req.headers['chiave'];
-
-  let hash = crypto.createHash('sha256').update(chiave).digest('hex');
-
-  if(hash != key){
+  if(!isHashCorrect(req.headers['chiave'])){
     res.status(401).json({errore: "chiave non valida"});
     return;
   }
@@ -36,11 +32,7 @@ app.get('/sprechi-inizio', (req, res) => {
 
 app.get('/sprechi-oggi', (req, res) => {
   const secondiPassati = (moment() - moment().startOf('day')) / 1000;
-  const chiave = req.headers['chiave'];
-
-  let hash = crypto.createHash('sha256').update(chiave).digest('hex');
-
-  if(hash != key){
+  if(!isHashCorrect(req.headers['chiave'])){
     res.status(401).json({errore: "chiave non valida"});
     return;
   }
@@ -52,6 +44,34 @@ app.get('/sprechi-oggi', (req, res) => {
     co2_emessa: `${(emissioniCO2PerSecondo * secondiPassati).toFixed(2)} tonnellate`
   });
 });
+
+app.get('/trasporto', (req, res) => {
+  const secondiPassati = (moment() - moment().startOf('day')) / 1000;
+  if(!isHashCorrect(req.headers['chiave'])){
+    res.status(401).json({errore: "chiave non valida"});
+    return;
+  }
+  
+  let km = req.query.km;
+  const numeri = {
+    "piedi": 0,
+    "autobus": 65,
+    "auto": 141,
+    "aereo": 255
+  };
+
+  res.status(200).json({
+    piedi: `${km * numeri.piedi} kg CO2`,
+    autobus: `${(km * numeri.autobus).toFixed(2)} kg CO2`,
+    auto: `${(km * numeri.auto).toLocaleString()} kg CO2`,
+    aereo: `${(km * numeri.aereo).toFixed(2)} kg CO2`
+  });
+});
+
+function isHashCorrect(chiave){
+  let hash = crypto.createHash('sha256').update(chiave).digest('hex');
+  return hash === key;
+}
 
 app.listen(port, () => {
   console.log(`API attiva su http://localhost:${port}`);
